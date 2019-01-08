@@ -10,31 +10,47 @@ import UIKit
 import Photos
 
 private let reuseIdentifier = "PhotoCell"
-private let collectionViewCellNibName = "PhotoCollectionViewCell"
+private let collectionViewCellNibName = "PickerItemCollectionViewCell"
 
-class PhotoPickerCollectionViewController: UICollectionViewController, PhotoLibraryChangeDelegate {
+class PickerCollectionViewController: UICollectionViewController, PhotoLibraryChangeDelegate {
     fileprivate lazy var assetManager: PHAssetManager = {
-        [weak self] in
-        let assetManager = PHAssetManager()
-        assetManager.photoLibraryChangeDelegate = self
-        
+        let assetManager = PHAssetManager(photoLibraryChangeDelegate: self, photoType: self.photoType)
+
         return assetManager
     }()
-
+    fileprivate var dismissSwipeInteractionController: DismissSwipeInteractionController?
+    
+    var selectedButtonFrame: CGRect
+    fileprivate var photoType: PhotoType
     fileprivate let numberOfItemsPerRow = 2
-    fileprivate var contentSize: Int = 0 /// temporary value, set in collectionView: sizeForItemAt
+    fileprivate var contentSize: Int = 0 // temporary value, set in collectionView: sizeForItemAt
     fileprivate var collectionViewContentSize: CGSize {
         return CGSize(width: contentSize, height: contentSize)
     }
     
+    init(collectionViewLayout layout: UICollectionViewLayout, photoType: PhotoType, selectedButtonFrame: CGRect) {
+        self.photoType = photoType
+        self.selectedButtonFrame = selectedButtonFrame
+        
+        super.init(collectionViewLayout: layout)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.transitioningDelegate = self
         
         self.collectionView.register(UINib(nibName: collectionViewCellNibName, bundle: nil),
                                      forCellWithReuseIdentifier: reuseIdentifier)
         self.collectionView.allowsMultipleSelection = true
         self.collectionView.prefetchDataSource = self
         self.collectionView.backgroundColor = .white
+        
+        dismissSwipeInteractionController = DismissSwipeInteractionController(viewController: self)
     }
 
     func photoLibraryChanged(changeDetails: PHFetchResultChangeDetails<PHAsset>) {
@@ -61,7 +77,7 @@ class PhotoPickerCollectionViewController: UICollectionViewController, PhotoLibr
 }
 
 // MARK: UICollectionViewDataSource
-extension PhotoPickerCollectionViewController {
+extension PickerCollectionViewController {
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
@@ -71,7 +87,7 @@ extension PhotoPickerCollectionViewController {
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PhotoCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PickerItemCollectionViewCell
         
         let phAsset = assetManager.phAssets[indexPath.item]
         
@@ -85,10 +101,13 @@ extension PhotoPickerCollectionViewController {
         return cell
     }
     
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+    }
 }
 
 // MARK: UICollectionViewDataSourcePrefetching
-extension PhotoPickerCollectionViewController: UICollectionViewDataSourcePrefetching {
+extension PickerCollectionViewController: UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
         var assetsToPrefetch: [PHAsset] = []
         for indexPath in indexPaths {
@@ -112,7 +131,7 @@ extension PhotoPickerCollectionViewController: UICollectionViewDataSourcePrefetc
 }
 
 // MARK: UICollectionViewDelegateFlowLayout
-extension PhotoPickerCollectionViewController: UICollectionViewDelegateFlowLayout {
+extension PickerCollectionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if contentSize == 0 {
             let layoutMargins = collectionView.layoutMargins
@@ -133,5 +152,24 @@ extension PhotoPickerCollectionViewController: UICollectionViewDelegateFlowLayou
         let cellPadding = CGFloat(8)
         
         return UIEdgeInsets(top: cellPadding, left: cellPadding, bottom: cellPadding, right: cellPadding)
+    }
+}
+
+extension PickerCollectionViewController: UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return ButtonPresentAnimationController(originFrame: selectedButtonFrame, photoType: "Albums")
+    }
+    
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        guard let interactionController = dismissSwipeInteractionController else { return nil }
+        return ButtonDismissAnimationController(destinationFrame: selectedButtonFrame, interactionController: interactionController)
+    }
+    
+    func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        guard let animator = animator as? ButtonDismissAnimationController,
+            let interactionController = animator.interactionController,
+            interactionController.interactionInProgress
+            else { return nil }
+        return interactionController
     }
 }

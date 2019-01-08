@@ -8,18 +8,9 @@
 
 import UIKit
 
-class PhotoCollectionViewCell: UICollectionViewCell {
+class PickerItemCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var photoImageView: UIImageView!
     @IBOutlet weak var selectedIndicatorView: UIView!
-    
-    override var isSelected: Bool {
-        didSet {
-            switch super.isSelected {
-            case true : indicateSelected()
-            case false : indicateDeselected()
-            }
-        }
-    }
     
     override func awakeFromNib() {
         super.awakeFromNib()
