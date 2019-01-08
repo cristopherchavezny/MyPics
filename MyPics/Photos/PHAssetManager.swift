@@ -13,26 +13,41 @@ protocol PhotoLibraryChangeDelegate: class {
     func photoLibraryChanged(changeDetails: PHFetchResultChangeDetails<PHAsset>)
 }
 
+enum PhotoType: Int {
+    case Album, Photos
+}
+
 class PHAssetManager: NSObject {
-    var phAssets: [PHAsset] = []
-    var assetFetchResult: PHFetchResult<PHAsset> = PHFetchResult<PHAsset>()
-    let options = PHFetchOptions()
-    
-    weak var photoLibraryChangeDelegate: PhotoLibraryChangeDelegate? = nil
+    fileprivate final weak var photoLibraryChangeDelegate: PhotoLibraryChangeDelegate?
+
+    final var phAssets: [PHAsset] = []
+    fileprivate final var assetFetchResult: PHFetchResult<PHAsset>
+    fileprivate final let fetchOptions: PHFetchOptions
     
     fileprivate final var cachingImageManager: PHCachingImageManager
     fileprivate final var requestOptions: PHImageRequestOptions
     fileprivate final var imageManager: PHImageManager
     
+    fileprivate final var photoType: PhotoType
     fileprivate final let assetSortDescriptor = "creationDate"
     
-    init(cachingImageManager: PHCachingImageManager = PHCachingImageManager(),
+    init(photoLibraryChangeDelegate: PhotoLibraryChangeDelegate?,
+         assetFetchResult: PHFetchResult<PHAsset> = PHFetchResult<PHAsset>(),
+         fetchOptions: PHFetchOptions = PHFetchOptions(),
+         cachingImageManager: PHCachingImageManager = PHCachingImageManager(),
          requestOptions: PHImageRequestOptions = PHImageRequestOptions(),
-         imageManager: PHImageManager = PHImageManager()) {
+         imageManager: PHImageManager = PHImageManager(),
+         photoType: PhotoType) {
+        self.photoLibraryChangeDelegate = photoLibraryChangeDelegate
+        self.assetFetchResult = assetFetchResult
+        self.fetchOptions = fetchOptions
         self.cachingImageManager = cachingImageManager
         self.requestOptions = requestOptions
         self.imageManager = imageManager
+        self.photoType = photoType
         
+        fetchOptions.sortDescriptors = [NSSortDescriptor(key: assetSortDescriptor, ascending: false)]
+
         cachingImageManager.allowsCachingHighQualityImages = true
         
         requestOptions.isNetworkAccessAllowed = true
@@ -41,28 +56,52 @@ class PHAssetManager: NSObject {
         super.init()
         
         PHPhotoLibrary.shared().register(self)
-        getPhotos()
+        getPhotosFrom(photoType: self.photoType)
     }
     
     deinit {
         stopCachingImagesForAllAssets()
     }
     
-    func getPhotos() {
-        options.sortDescriptors = [NSSortDescriptor(key: assetSortDescriptor, ascending: false)]
+    fileprivate final func getPhotosFrom(photoType: PhotoType) {
+        switch photoType {
+        case .Album:
+            getAlbums()
+        default:
+            getPhotos()
+        }
+    }
+    
+    fileprivate final func getAlbums() {
+        let albumsFetchResult = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: nil)
+        let smartAlbumsFetchResult = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .any, options: nil)
+        let allAlbums = [albumsFetchResult, smartAlbumsFetchResult]
         
-        assetFetchResult = PHAsset.fetchAssets(with: .image, options: options)
+        for album in allAlbums {
+            album.enumerateObjects { [weak self] (phAssetCollection, index, stop) in
+                self?.fetchOptions.fetchLimit = 1
+
+                let albumFetchResult = PHAsset.fetchAssets(in: phAssetCollection, options: self?.fetchOptions)
+                albumFetchResult.enumerateObjects({ [weak self] (phAsset, index, stop) in
+                    self?.phAssets.append(phAsset)
+                })
+            }
+        }
+    }
+    
+    fileprivate final func getPhotos() {
+        assetFetchResult = PHAsset.fetchAssets(with: .image, options: fetchOptions)
         enumerateFetchResults()
     }
     
-    func enumerateFetchResults() {
+    fileprivate final func enumerateFetchResults() {
         phAssets.removeAll()
         assetFetchResult.enumerateObjects { [weak self] (phAsset, _, _) in
             self?.phAssets.append(phAsset)
         }
     }
     
-    func startCaching(prefetchedAssets: [PHAsset], targetSize: CGSize) {
+    final func startCaching(prefetchedAssets: [PHAsset], targetSize: CGSize) {
         cachingImageManager.startCachingImages(for: prefetchedAssets,
                                                targetSize: targetSize,
                                                contentMode: .default,
@@ -70,7 +109,7 @@ class PHAssetManager: NSObject {
         )
     }
     
-    func stopCaching(prefetchedAssets: [PHAsset], targetSize: CGSize) {
+    final func stopCaching(prefetchedAssets: [PHAsset], targetSize: CGSize) {
         cachingImageManager.stopCachingImages(for: prefetchedAssets,
                                               targetSize: targetSize,
                                               contentMode: .default,
@@ -78,7 +117,7 @@ class PHAssetManager: NSObject {
         )
     }
     
-    func requestImageFromCach(forAsset: PHAsset, targetSize: CGSize, completionHandler: @escaping (UIImage?) -> Void) {
+    final func requestImageFromCach(forAsset: PHAsset, targetSize: CGSize, completionHandler: @escaping (UIImage?) -> Void) {
         cachingImageManager.requestImage(for: forAsset,
                                          targetSize: targetSize,
                                          contentMode: .default,
@@ -87,7 +126,7 @@ class PHAssetManager: NSObject {
         }
     }
     
-    func requestFullSizeImageFromCach(forAsset: PHAsset, completionHandler: @escaping (UIImage?) -> Void) {
+    final func requestFullSizeImageFromCach(forAsset: PHAsset, completionHandler: @escaping (UIImage?) -> Void) {
         let newRequestOptions = requestOptions
         newRequestOptions.isSynchronous = true
         
@@ -100,15 +139,14 @@ class PHAssetManager: NSObject {
         
     }
     
-    func stopCachingImagesForAllAssets() {
+    fileprivate final func stopCachingImagesForAllAssets() {
         cachingImageManager.stopCachingImagesForAllAssets()
     }
-    
 }
 
+// PHPhotoLibraryChangeObserver gets called when a new image has been added to Phopto Library
 extension PHAssetManager: PHPhotoLibraryChangeObserver {
-    
-    func photoLibraryDidChange(_ changeInstance: PHChange) {
+    internal final func photoLibraryDidChange(_ changeInstance: PHChange) {
         if let changeDetailsToFetchResults = changeInstance.changeDetails(for: assetFetchResult) {
             assetFetchResult = changeDetailsToFetchResults.fetchResultAfterChanges
             enumerateFetchResults()
