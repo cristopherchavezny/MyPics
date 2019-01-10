@@ -58,6 +58,7 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
                 print("AVCaptureDeviceInput failed to initialize with videoDevice")
             }
         }
+
         guard let videoDeviceInput = self.videoDeviceInput,
             captureSession.canAddInput(videoDeviceInput) else { return }
         
@@ -84,7 +85,6 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
     }
     
     //MARK: --- Flip Camera methods ---
-    
     func getAvailableAVCaptureDevice() -> AVCaptureDevice? {
         let devices = videoDeviceDiscoverySession.devices
         
@@ -102,7 +102,6 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
             switch currentPosition {
             case .unspecified, .front:
                 preferredPosition = .back
-
             case .back:
                 preferredPosition = .front
             }

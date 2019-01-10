@@ -19,6 +19,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         super.viewDidLoad()
 
         self.camera = Camera(cameraPreviewView: cameraPreviewView)
+        
         if let camera = self.camera {
             flipCameraButton.isEnabled = camera.shouldEnableFlipCameraButton
         }
@@ -40,4 +41,5 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBAction func flipCamera(_ sender: UIButton) {
         camera?.flipCamera()
     }
+    
 }
