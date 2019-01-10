@@ -23,24 +23,38 @@ class PhotosPermissionAlerts {
     private final lazy var restrictedPhotoLibraryAlertText: String = {
         return """
     Your account has restrictions. \
-    Your account can not grant access to the device photo library.
+    Your account can not grant access to the device's photo library.
+    """
+    }()
+    
+    private final lazy var deniedCameraAlertText: String = {
+        return """
+    You've denied access to your camera. \n
+    To use this feature we need access to your camera.
+    """
+    }()
+    
+    private final lazy var restrictedCameraAlertText: String = {
+        return """
+    Your account has restrictions. \
+    Your account can not grant access to the device's camera.
     """
     }()
     
     private final var settingsActionText: String?
     
-    init(authorizationStatus: AuthorizationStatus) {
+    init(authorizationType: AuthorizationType, authorizationStatus: AuthorizationStatus) {
         self.authorizationStatus = authorizationStatus
-        configureAlertPropertiesUsing(authorizationStatus: self.authorizationStatus)
+        configureAlertPropertiesUsing(authorizationType: authorizationType, authorizationStatus: authorizationStatus)
     }
     
-    func configureAlertPropertiesUsing(authorizationStatus: AuthorizationStatus) {
+    func configureAlertPropertiesUsing(authorizationType: AuthorizationType, authorizationStatus: AuthorizationStatus) {
         switch authorizationStatus {
         case .Denied:
-            message =  deniedPhotoLibraryAlertText
+            message =  authorizationType == .Camera ? deniedCameraAlertText : deniedPhotoLibraryAlertText
             settingsActionText = "Settings"
         case .Restricted:
-            message = restrictedPhotoLibraryAlertText
+            message = authorizationType == .Camera ? restrictedCameraAlertText : restrictedPhotoLibraryAlertText
         default: break;
         }
     }
