@@ -12,8 +12,6 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CameraViewController" customModule="MyPics" customModuleProvider="target">
             <connections>
-                <outlet property="cameraPreviewView" destination="itk-MO-qTL" id="Kly-W5-Qpk"/>
-                <outlet property="flipCameraButton" destination="ozl-IU-6GL" id="PJ0-OJ-Zgx"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -22,7 +20,7 @@
             <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="itk-MO-qTL" customClass="CameraPreviewView" customModule="MyPics" customModuleProvider="target">
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="itk-MO-qTL">
                     <rect key="frame" x="0.0" y="20" width="375" height="647"/>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 </view>
@@ -33,9 +31,6 @@
                         <constraint firstAttribute="width" constant="50" id="TBh-nC-Lzt"/>
                     </constraints>
                     <state key="normal" title="Button" image="CapturePhoto"/>
-                    <connections>
-                        <action selector="capturePhoto:" destination="-1" eventType="touchUpInside" id="DEX-9f-dUY"/>
-                    </connections>
                 </button>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ozl-IU-6GL">
                     <rect key="frame" x="315" y="607" width="50" height="50"/>
@@ -44,9 +39,6 @@
                         <constraint firstAttribute="height" constant="50" id="dFj-vM-CCw"/>
                     </constraints>
                     <state key="normal" title="Button" image="FlipCamera"/>
-                    <connections>
-                        <action selector="flipCamera:" destination="-1" eventType="touchUpInside" id="Rd7-ql-26c"/>
-                    </connections>
                 </button>
             </subviews>
             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
