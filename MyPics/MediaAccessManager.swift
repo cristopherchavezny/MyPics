@@ -85,7 +85,7 @@ class MediaAccessManager {
     }
     
     fileprivate final func showCamera() {
-        let cameraViewController = CameraViewController(nibName: "CameraViewController", bundle: nil)
+        let cameraViewController = CameraViewController(selectedButtonFrame: selectedButtonFrame)
         photoAccessDelegate?.presentCamera(controller: cameraViewController)
     }
     

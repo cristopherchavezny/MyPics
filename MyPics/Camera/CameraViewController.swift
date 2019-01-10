@@ -13,20 +13,26 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBOutlet weak var cameraPreviewView: CameraPreviewView!
     @IBOutlet weak var flipCameraButton: UIButton!
     
+    fileprivate var dismissSwipeInteractionController: DismissSwipeInteractionController?
+    fileprivate final let selectedButtonFrame: CGRect
     private var camera: Camera?
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.camera = Camera(cameraPreviewView: cameraPreviewView)
+        self.transitioningDelegate = self
+        dismissSwipeInteractionController = DismissSwipeInteractionController(viewController: self)
         
+        self.camera = Camera(cameraPreviewView: cameraPreviewView)
         if let camera = self.camera {
             flipCameraButton.isEnabled = camera.shouldEnableFlipCameraButton
         }
     }
 
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    init(selectedButtonFrame: CGRect) {
+        self.selectedButtonFrame = selectedButtonFrame
+        
+        super.init(nibName: "CameraViewController", bundle: nil)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -41,5 +47,24 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBAction func flipCamera(_ sender: UIButton) {
         camera?.flipCamera()
     }
+}
+
+extension CameraViewController: UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return ButtonPresentAnimationController(originFrame: selectedButtonFrame, photoType: "Camera")
+
+    }
     
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        guard let interactionController = dismissSwipeInteractionController else { return nil }
+        return ButtonDismissAnimationController(destinationFrame: selectedButtonFrame, interactionController: interactionController)
+    }
+    
+    func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        guard let animator = animator as? ButtonDismissAnimationController,
+            let interactionController = animator.interactionController,
+            interactionController.interactionInProgress
+            else { return nil }
+        return interactionController
+    }
 }
