@@ -12,11 +12,11 @@ import Foundation
 
 protocol PhotoAccessDelegate: class {
     func presentPicker(controller: UICollectionViewController)
-    func presentCamera(previewView: UIView)
+    func presentCamera(controller: UIViewController)
     func presentAlert(alertController: UIAlertController)
 }
 
-class PhotoAccessManager {
+class MediaAccessManager {
     private final let photoType: PhotoType?
     
     private final var selectedButtonFrame: CGRect
@@ -42,7 +42,8 @@ class PhotoAccessManager {
             showAppropriateViewBasedOnPermissionsForCamera()
         }
     }
-    
+
+    // Mark: --- Photos ---
     func showAppropriateViewBasedOnPermissionsFor(photoType: PhotoType) {
         permissions.authorizationStatusFor(authorizationType: .PhotoLibrary) {
             [weak self] authorizationStatus in
@@ -57,6 +58,18 @@ class PhotoAccessManager {
         }
     }
     
+    fileprivate final func showPhoto(type: PhotoType){
+        let photoPicker = PickerCollectionViewController(collectionViewLayout: layout, photoType: type, selectedButtonFrame: selectedButtonFrame)
+        photoAccessDelegate?.presentPicker(controller: photoPicker)
+    }
+
+    fileprivate final func showPhotoLibraryAlert(authorizationStatus: AuthorizationStatus) {
+        let alerts = PhotosPermissionAlerts(authorizationType: .PhotoLibrary, authorizationStatus: authorizationStatus)
+        let alertController = alerts.createAlertController()
+        photoAccessDelegate?.presentAlert(alertController: alertController)
+    }
+    
+    // Mark: --- Camera ---
     func showAppropriateViewBasedOnPermissionsForCamera() {
         permissions.authorizationStatusFor(authorizationType: .Camera) {
             [weak self] authorizationStatus in
@@ -64,32 +77,22 @@ class PhotoAccessManager {
             case .Authorized:
                 self?.showCamera()
             case .Denied:
-                break
+                self?.showCameraAlert(authorizationStatus: .Denied)
             case .Restricted :
-                break
+                self?.showCameraAlert(authorizationStatus: .Restricted)
             }
         }
     }
     
-    fileprivate final func showPhoto(type: PhotoType){
-        let photoPicker = PickerCollectionViewController(collectionViewLayout: layout, photoType: type, selectedButtonFrame: selectedButtonFrame)
-        photoAccessDelegate?.presentPicker(controller: photoPicker)
-    }
-
-    fileprivate final func showPhotoLibraryAlert(authorizationStatus: AuthorizationStatus) {
-        let alerts = PhotosPermissionAlerts(authorizationStatus: authorizationStatus)
-        let alertController = alerts.createAlertController()
-        photoAccessDelegate?.presentAlert(alertController: alertController)
-    }
-    
     fileprivate final func showCamera() {
-        let camera = Camera()
-        let cameraPreviewView = camera.cameraPreviewView
-        photoAccessDelegate?.presentCamera(previewView: cameraPreviewView)
+        let cameraViewController = CameraViewController(nibName: "CameraViewController", bundle: nil)
+        photoAccessDelegate?.presentCamera(controller: cameraViewController)
     }
     
     fileprivate final func showCameraAlert(authorizationStatus: AuthorizationStatus) {
-        
+        let alerts = PhotosPermissionAlerts(authorizationType: .Camera, authorizationStatus: authorizationStatus)
+        let alertController = alerts.createAlertController()
+        photoAccessDelegate?.presentAlert(alertController: alertController)
     }
 
 }

@@ -15,14 +15,14 @@ class CameraPreviewView: UIView {
     }
     
     required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
     }
     
     override class var layerClass: AnyClass {
         return AVCaptureVideoPreviewLayer.self
     }
     
-    /// Convenience wrapper to get layer as its statically known type.
+    // Convenience wrapper to get layer as its statically known type.
     var videoPreviewLayer: AVCaptureVideoPreviewLayer {
         return layer as! AVCaptureVideoPreviewLayer
     }

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		9A3C56D021DD491500F88E4F /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C56CF21DD491500F88E4F /* Animations.swift */; };
+		9A617ECC21E5333F00132A82 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A617ECA21E5333F00132A82 /* CameraViewController.swift */; };
+		9A617ECD21E5333F00132A82 /* CameraViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9A617ECB21E5333F00132A82 /* CameraViewController.xib */; };
 		9A8EFD8821D7FA9300C99CF7 /* ButtonPresentAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8EFD8721D7FA9300C99CF7 /* ButtonPresentAnimationController.swift */; };
 		9AA0F02821C441A8000AF79D /* PHAssetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA0F02721C441A8000AF79D /* PHAssetManager.swift */; };
 		9AB3124721E008380046BC99 /* ButtonDismissAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB3124621E008380046BC99 /* ButtonDismissAnimationController.swift */; };
@@ -26,7 +28,7 @@
 		9AD32F8621C43C770068B5DE /* PickerItemCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD32F8421C43C770068B5DE /* PickerItemCollectionViewCell.swift */; };
 		9AD32F8721C43C770068B5DE /* PickerItemCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9AD32F8521C43C770068B5DE /* PickerItemCollectionViewCell.xib */; };
 		9AD32F8921C43CA90068B5DE /* PickerCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD32F8821C43CA90068B5DE /* PickerCollectionViewController.swift */; };
-		9AD32F8D21C43EA30068B5DE /* PhotoAccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD32F8C21C43EA30068B5DE /* PhotoAccessManager.swift */; };
+		9AD32F8D21C43EA30068B5DE /* MediaAccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD32F8C21C43EA30068B5DE /* MediaAccessManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,8 @@
 
 /* Begin PBXFileReference section */
 		9A3C56CF21DD491500F88E4F /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
+		9A617ECA21E5333F00132A82 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
+		9A617ECB21E5333F00132A82 /* CameraViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CameraViewController.xib; sourceTree = "<group>"; };
 		9A8EFD8721D7FA9300C99CF7 /* ButtonPresentAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonPresentAnimationController.swift; sourceTree = "<group>"; };
 		9AA0F02721C441A8000AF79D /* PHAssetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHAssetManager.swift; sourceTree = "<group>"; };
 		9AB3124621E008380046BC99 /* ButtonDismissAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonDismissAnimationController.swift; sourceTree = "<group>"; };
@@ -72,7 +76,7 @@
 		9AD32F8421C43C770068B5DE /* PickerItemCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerItemCollectionViewCell.swift; sourceTree = "<group>"; };
 		9AD32F8521C43C770068B5DE /* PickerItemCollectionViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PickerItemCollectionViewCell.xib; sourceTree = "<group>"; };
 		9AD32F8821C43CA90068B5DE /* PickerCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerCollectionViewController.swift; sourceTree = "<group>"; };
-		9AD32F8C21C43EA30068B5DE /* PhotoAccessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAccessManager.swift; sourceTree = "<group>"; };
+		9AD32F8C21C43EA30068B5DE /* MediaAccessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAccessManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +127,8 @@
 			children = (
 				9AB3124F21E1690F0046BC99 /* Camera.swift */,
 				9AB3125121E410AC0046BC99 /* CameraPreviewView.swift */,
+				9A617ECA21E5333F00132A82 /* CameraViewController.swift */,
+				9A617ECB21E5333F00132A82 /* CameraViewController.xib */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -152,6 +158,7 @@
 			children = (
 				9AD32F5021C43BBE0068B5DE /* AppDelegate.swift */,
 				9AD32F5221C43BBE0068B5DE /* ViewController.swift */,
+				9AD32F8C21C43EA30068B5DE /* MediaAccessManager.swift */,
 				9AD32F5421C43BBE0068B5DE /* Main.storyboard */,
 				9AD32F5721C43BBF0068B5DE /* Assets.xcassets */,
 				9AD32F5921C43BBF0068B5DE /* LaunchScreen.storyboard */,
@@ -222,7 +229,6 @@
 			isa = PBXGroup;
 			children = (
 				9AD32F8A21C43CB20068B5DE /* PhotoPicker */,
-				9AD32F8C21C43EA30068B5DE /* PhotoAccessManager.swift */,
 				9AA0F02721C441A8000AF79D /* PHAssetManager.swift */,
 			);
 			path = Photos;
@@ -335,6 +341,7 @@
 				9AD32F5B21C43BBF0068B5DE /* LaunchScreen.storyboard in Resources */,
 				9AD32F8721C43C770068B5DE /* PickerItemCollectionViewCell.xib in Resources */,
 				9AD32F5821C43BBF0068B5DE /* Assets.xcassets in Resources */,
+				9A617ECD21E5333F00132A82 /* CameraViewController.xib in Resources */,
 				9AD32F5621C43BBE0068B5DE /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -360,7 +367,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AD32F8D21C43EA30068B5DE /* PhotoAccessManager.swift in Sources */,
+				9AD32F8D21C43EA30068B5DE /* MediaAccessManager.swift in Sources */,
 				9AD32F5321C43BBE0068B5DE /* ViewController.swift in Sources */,
 				9AA0F02821C441A8000AF79D /* PHAssetManager.swift in Sources */,
 				9A8EFD8821D7FA9300C99CF7 /* ButtonPresentAnimationController.swift in Sources */,
@@ -371,6 +378,7 @@
 				9AD32F8921C43CA90068B5DE /* PickerCollectionViewController.swift in Sources */,
 				9AD32F8221C43C180068B5DE /* PhotosPermissionAlerts.swift in Sources */,
 				9AB3125221E410AC0046BC99 /* CameraPreviewView.swift in Sources */,
+				9A617ECC21E5333F00132A82 /* CameraViewController.swift in Sources */,
 				9AB3124721E008380046BC99 /* ButtonDismissAnimationController.swift in Sources */,
 				9AB3125021E1690F0046BC99 /* Camera.swift in Sources */,
 				9AD32F5121C43BBE0068B5DE /* AppDelegate.swift in Sources */,

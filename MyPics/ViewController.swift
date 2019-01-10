@@ -13,14 +13,14 @@ class ViewController: UIViewController, PhotoAccessDelegate, UIImagePickerContro
     @IBOutlet weak var photosView: UIView!
     @IBOutlet weak var cameraView: UIView!
     
-    var photoAccessManager: PhotoAccessManager?
+    var mediaAccessManager: MediaAccessManager?
     
     override func viewDidLoad() {
         super.viewDidLoad()
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        photoAccessManager = nil
+        mediaAccessManager = nil
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -62,11 +62,11 @@ class ViewController: UIViewController, PhotoAccessDelegate, UIImagePickerContro
     }
     
     func showCamera() {
-        photoAccessManager = PhotoAccessManager(photoType: nil, photoAccessDelegate: self, selectedButtonFrame: cameraView.frame)
+        mediaAccessManager = MediaAccessManager(photoType: nil, photoAccessDelegate: self, selectedButtonFrame: cameraView.frame)
     }
     
     func showPhotos(photoType: PhotoType, selectedButtonFrame: CGRect) {
-        photoAccessManager = PhotoAccessManager(photoType: photoType, photoAccessDelegate: self, selectedButtonFrame: selectedButtonFrame)
+        mediaAccessManager = MediaAccessManager(photoType: photoType, photoAccessDelegate: self, selectedButtonFrame: selectedButtonFrame)
     }
     
     func presentPicker(controller: UICollectionViewController) {
@@ -82,10 +82,15 @@ class ViewController: UIViewController, PhotoAccessDelegate, UIImagePickerContro
     
     func presentCamera(previewView: UIView) {
         previewView.frame = view.frame
+        previewView.backgroundColor = .green
         self.view.addSubview(previewView)
     }
 
     func presentAlert(alertController: UIAlertController) {
         self.present(alertController, animated: true, completion: nil)
+    }
+    
+    func presentCamera(controller: UIViewController) {
+        self.present(controller, animated: true, completion: nil)
     }
 }
