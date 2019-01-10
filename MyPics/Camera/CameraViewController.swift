@@ -11,6 +11,7 @@ import AVFoundation
 
 class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBOutlet weak var cameraPreviewView: CameraPreviewView!
+    @IBOutlet weak var flipCameraButton: UIButton!
     
     private var camera: Camera?
     
@@ -18,6 +19,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         super.viewDidLoad()
 
         self.camera = Camera(cameraPreviewView: cameraPreviewView)
+        if let camera = self.camera {
+            flipCameraButton.isEnabled = camera.shouldEnableFlipCameraButton
+        }
     }
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -34,7 +38,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
     
     @IBAction func flipCamera(_ sender: UIButton) {
-        
+        camera?.flipCamera()
     }
-    
 }

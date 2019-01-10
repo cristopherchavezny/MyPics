@@ -17,21 +17,27 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
     fileprivate final let photoOutput: AVCapturePhotoOutput
     var videoDeviceInput: AVCaptureDeviceInput?
     private(set) var photoSettings: AVCapturePhotoSettings?
+    private let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified)
 
-    lazy var context = CIContext()
     private var photoData: Data?
-    private var portraitEffectsMatteData: Data?
     
-    var cameraPreviewView: CameraPreviewView
+    fileprivate final var cameraPreviewView: CameraPreviewView
+    lazy var shouldEnableFlipCameraButton: Bool = {
+       return self.videoDeviceDiscoverySession.uniqueDevicePositionsCount > 1
+    }()
+    
+    fileprivate final let permissions: Permissions
     
     init(captureSession: AVCaptureSession = AVCaptureSession(),
         photoOutput: AVCapturePhotoOutput = AVCapturePhotoOutput(),
-        cameraPreviewView: CameraPreviewView) {
+        cameraPreviewView: CameraPreviewView,
+        permissions: Permissions = Permissions()) {
         self.captureSession = captureSession
         self.photoOutput = photoOutput
         self.cameraPreviewView = cameraPreviewView
+        self.permissions = permissions
         super.init()
-        
+    
         beginConfiguration()
         addMediaOutputs()
         connectPreviewLayerToCaptureSession()
@@ -45,14 +51,13 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
     fileprivate final func beginConfiguration() {
         captureSession.beginConfiguration()
 
-        if let videoDevice = AVCaptureDevice.default(for: .video){
+        if let videoDevice = getAvailableAVCaptureDevice() {
             do {
                 videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
             } catch {
                 print("AVCaptureDeviceInput failed to initialize with videoDevice")
             }
         }
-
         guard let videoDeviceInput = self.videoDeviceInput,
             captureSession.canAddInput(videoDeviceInput) else { return }
         
@@ -78,6 +83,60 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
         captureSession.stopRunning()
     }
     
+    //MARK: --- Flip Camera methods ---
+    
+    func getAvailableAVCaptureDevice() -> AVCaptureDevice? {
+        let devices = videoDeviceDiscoverySession.devices
+        
+        if videoDeviceInput === nil { // We want the front camera since it's the first instance of Camera
+            let newDevice = devices.first(where: { $0.position == .back })
+            return newDevice
+        } else { // determine what position the camera is in and switch
+            guard let videoDeviceInput = self.videoDeviceInput else { return nil }
+            
+            let currentVideoDevice = videoDeviceInput.device
+            let currentPosition = currentVideoDevice.position
+            
+            let preferredPosition: AVCaptureDevice.Position
+            
+            switch currentPosition {
+            case .unspecified, .front:
+                preferredPosition = .back
+
+            case .back:
+                preferredPosition = .front
+            }
+            
+            let newDevice = devices.first(where: { $0.position == preferredPosition})
+            return newDevice
+        }
+    
+    }
+    
+    func flipCamera() {
+        sessionQueue.async {
+            if let videoDevice = self.getAvailableAVCaptureDevice(),
+                let videoDeviceInput = self.videoDeviceInput {
+                do {
+                    let newVideoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
+                    self.captureSession.beginConfiguration()
+                    self.captureSession.removeInput(videoDeviceInput)
+                    
+                    if self.captureSession.canAddInput(newVideoDeviceInput) {
+                        self.captureSession.addInput(newVideoDeviceInput)
+                        self.videoDeviceInput = newVideoDeviceInput
+                    } else {
+                        self.captureSession.addInput(videoDeviceInput)
+                    }
+                    self.captureSession.commitConfiguration()
+                } catch {
+                    print("Error occurred in flipCamera while creating video device input: \(error)")
+                }
+            }
+        }
+    }
+    
+    // MARK: --- Take a picture methods ---
     func capturePhoto(with videoPreviewLayerOrientation: AVCaptureVideoOrientation) {
         sessionQueue.async {
             if let photoOutputConnection = self.photoOutput.connection(with: .video) {
@@ -101,7 +160,6 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
             }
             
             self.photoOutput.capturePhoto(with: photoSettings, delegate: self)
-
         }
     }
     
@@ -111,25 +169,6 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
         } else {
              self.photoData = photo.fileDataRepresentation()
         }
-        // Portrait effects matte gets generated only if AVFoundation detects a face.
-        if var portraitEffectsMatte = photo.portraitEffectsMatte {
-            if let orientation = photo.metadata[ String(kCGImagePropertyOrientation) ] as? UInt32 {
-                portraitEffectsMatte = portraitEffectsMatte.applyingExifOrientation( CGImagePropertyOrientation(rawValue: orientation)! )
-            }
-            let portraitEffectsMattePixelBuffer = portraitEffectsMatte.mattingImage
-            let portraitEffectsMatteImage = CIImage( cvImageBuffer: portraitEffectsMattePixelBuffer, options: [ .auxiliaryPortraitEffectsMatte: true ] )
-            guard let linearColorSpace = CGColorSpace(name: CGColorSpace.linearSRGB) else {
-                portraitEffectsMatteData = nil
-                return
-            }
-            portraitEffectsMatteData = context.heifRepresentation(of: portraitEffectsMatteImage, format: .RGBA8, colorSpace: linearColorSpace, options: [ CIImageRepresentationOption.portraitEffectsMatteImage: portraitEffectsMatteImage ] )
-        } else {
-            portraitEffectsMatteData = nil
-        }
-    }
-    
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photoSampleBuffer: CMSampleBuffer?, previewPhoto previewPhotoSampleBuffer: CMSampleBuffer?, resolvedSettings: AVCaptureResolvedPhotoSettings, bracketSettings: AVCaptureBracketedStillImageSettings?, error: Error?) {
-        
     }
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
@@ -143,21 +182,14 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
             return
         }
         
-        PHPhotoLibrary.requestAuthorization { status in
-            if status == .authorized {
+        permissions.authorizationStatusFor(authorizationType: .PhotoLibrary) { authorizationStatus in
+            switch authorizationStatus {
+            case .Authorized:
                 PHPhotoLibrary.shared().performChanges({
                     let options = PHAssetResourceCreationOptions()
                     let creationRequest = PHAssetCreationRequest.forAsset()
                     options.uniformTypeIdentifier = self.photoSettings?.processedFileType.map { $0.rawValue }
                     creationRequest.addResource(with: .photo, data: photoData, options: options)
-                    
-                    // Save Portrait Effects Matte to Photos Library only if it was generated
-                    if let portraitEffectsMatteData = self.portraitEffectsMatteData {
-                        let creationRequest = PHAssetCreationRequest.forAsset()
-                        creationRequest.addResource(with: .photo,
-                                                    data: portraitEffectsMatteData,
-                                                    options: nil)
-                    }
                     
                 }, completionHandler: { _, error in
                     if let error = error {
@@ -165,8 +197,32 @@ class Camera: NSObject, AVCapturePhotoCaptureDelegate {
                     }
                 }
                 )
+            case .Denied:
+                // TODO: show alert
+                break
+            case .Restricted:
+                // TODO: Show alert
+                break
             }
         }
     }
 
+}
+
+// MARK: --- AVCaptureDevice ---
+extension AVCaptureDevice.DiscoverySession {
+    /**
+     The number of camera positions avialble.
+     */
+    var uniqueDevicePositionsCount: Int {
+        var uniqueDevicePositions: [AVCaptureDevice.Position] = []
+        
+        for device in devices {
+            if !uniqueDevicePositions.contains(device.position) {
+                uniqueDevicePositions.append(device.position)
+            }
+        }
+        
+        return uniqueDevicePositions.count
+    }
 }

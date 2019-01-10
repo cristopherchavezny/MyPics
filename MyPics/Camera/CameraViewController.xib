@@ -13,6 +13,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CameraViewController" customModule="MyPics" customModuleProvider="target">
             <connections>
                 <outlet property="cameraPreviewView" destination="itk-MO-qTL" id="Kly-W5-Qpk"/>
+                <outlet property="flipCameraButton" destination="ozl-IU-6GL" id="PJ0-OJ-Zgx"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
