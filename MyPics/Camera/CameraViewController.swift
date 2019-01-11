@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
+class CameraViewController: UIViewController {
     @IBOutlet weak var cameraPreviewView: CameraPreviewView!
     @IBOutlet weak var flipCameraButton: UIButton!
     

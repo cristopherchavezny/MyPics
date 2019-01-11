@@ -19,6 +19,10 @@ class ViewController: UIViewController, PhotoAccessDelegate, UIImagePickerContro
         super.viewDidLoad()
     }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         mediaAccessManager = nil
     }
